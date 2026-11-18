@@ -51,6 +51,11 @@ Authorization: Bearer <token van deze tool>
 | `counters` | 2 | Vrije tellers per tool, over de afgelopen 30 dagen. De labels staan in `src/config/tools.ts`. |
 | `attention` | 2 | Hooguit 50 aandachtspunten: een soort, een interne verwijzing en eventueel een aantal dagen. |
 
+De soorten aandachtspunten die het dashboard in woorden toont: `trial_ending`
+(een proef die bijna afloopt, `days` is het aantal dagen dat nog rest) en
+`inactive` (een account dat niets meer doet, `days` is hoe lang al; zonder
+`days` is het account nog nooit gebruikt). Een andere soort toont zijn sleutel.
+
 Alle aantallen zijn hele getallen van nul of meer. Een veld dat het dashboard
 niet kent, negeert het; een tool mag dus vooruitlopen.
 

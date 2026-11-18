@@ -24,6 +24,12 @@ export type ToolFigures = {
   statsState: IntegrationState & { checkedAt: Date | null };
   stripeState: IntegrationState & { checkedAt: Date | null; webhookConfigured: boolean };
   mrrSeries: DayPoint[];
+  /** Hoeveel accounts in de 7 dagen voor elke meting actief waren, per dag; leeg zolang de tool `active` niet levert. */
+  activeWeekSeries: DayPoint[];
+  /** Hetzelfde over de 30 dagen voor elke meting. */
+  activeMonthSeries: DayPoint[];
+  /** Abonnementen die in de laatste 30 dagen betalend werden, volgens de signalen van Stripe; `null` zonder Stripe. */
+  newPaying30d: number | null;
 };
 
 export type Overview = {

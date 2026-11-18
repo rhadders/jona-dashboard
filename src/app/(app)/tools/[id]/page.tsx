@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { AttentionList } from "@/components/app/attention-list";
 import { DataList } from "@/components/app/data-list";
 import { Figure } from "@/components/app/figure";
 import { LineChart } from "@/components/app/line-chart";
@@ -11,6 +12,7 @@ import { StatusLine } from "@/components/app/status";
 import { findTool } from "@/config/tools";
 import { euro, euroChange, number, percent, relativeMoment, share } from "@/lib/format";
 import { parsePeriod } from "@/lib/metrics/period";
+import { attentionRows, funnelRows, usageWindow } from "@/lib/metrics/usage";
 import { partnerShareCents } from "@/lib/stripe/mrr";
 import { toolStatus, type IntegrationState } from "@/lib/status/tool-status";
 import { partnerSharePercent } from "@/server/env";
@@ -46,11 +48,15 @@ export default async function ToolPage({ params, searchParams }: Props) {
   const partnerPercent = partnerSharePercent(tool);
   const partnerCents = partnerPercent === null ? 0 : partnerShareCents(figures.mrrCents, partnerPercent);
 
+  const funnel = funnelRows(stats, figures.newPaying30d);
+  const attention = attentionRows([{ id: tool.id, name: tool.name, stats }], 50);
+  const usageSpan = usageWindow(period);
+  const activeSeries = usageSpan === "month" ? figures.activeMonthSeries : figures.activeWeekSeries;
+
   const usageRows = stats
     ? [
         ...(stats.active ? [{ label: "Actief, 7 dagen", value: share(stats.active.last_7d, stats.accounts.total) }] : []),
         ...(stats.active ? [{ label: "Actief, 30 dagen", value: share(stats.active.last_30d, stats.accounts.total) }] : []),
-        ...(stats.activated ? [{ label: "Geactiveerd, 30 dagen", value: share(stats.activated.last_30d, stats.signups.last_30d) }] : []),
         ...Object.entries(stats.counters ?? {}).map(([key, value]) => ({ label: tool.counters[key] ?? key, value: number(value) })),
       ]
     : [];
@@ -114,6 +120,31 @@ export default async function ToolPage({ params, searchParams }: Props) {
             <h2 className="text-xl">Gebruik</h2>
             <DataList rows={usageRows} />
             <p className="text-sm text-muted-foreground">Actief: {tool.activeMeans.charAt(0).toLowerCase() + tool.activeMeans.slice(1)}.</p>
+          </div>
+        ) : null}
+
+        {stats?.active ? (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">{usageSpan === "month" ? "Actief per maand" : "Actief per week"}</h2>
+            <LineChart
+              points={activeSeries}
+              label={`Actieve ${tool.customer.plural} van ${tool.name} over de tijd`}
+              emptyText="De grafiek vult zich vanaf de tweede dag met metingen."
+            />
+          </div>
+        ) : null}
+
+        {funnel.length > 0 ? (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">Van aanmelding naar betalend, 30 dagen</h2>
+            <DataList rows={funnel} />
+          </div>
+        ) : null}
+
+        {stats?.attention ? (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">Vraagt aandacht</h2>
+            <AttentionList rows={attention} showTool={false} emptyText={`Geen ${tool.customer.plural} die aandacht vragen.`} />
           </div>
         ) : null}
 
