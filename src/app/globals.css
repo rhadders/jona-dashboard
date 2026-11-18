@@ -1,0 +1,338 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  De productidentiteit is het Jona design system (TirgumAI, ADR 1 daar): navy
+  als inkt en primaire actie, teal als enige accent, koele papiergrijzen
+  daartussen. De ramps en semantische tokens staan als HSL-triplets zodat
+  Tailwind 3 ze aanspreekt als `hsl(var(--x) / <alpha-value>)`. De hex-waarde
+  staat erachter als commentaar; `src/lib/design/tokens.test.ts` controleert
+  dat die kloppen.
+
+  Doorzichtige tokens (de scrim, de randen in donker) krijgen een eigen
+  `--x-alpha`; de config vermenigvuldigt die met de opaciteit van de klasse.
+*/
+@layer base {
+  :root {
+    /* Navy (inkt) */
+    --navy-900: 200.9 84.3% 10%; /* #04202f */
+    --navy-800: 201.3 84.9% 18.2%; /* #073a56 */
+    --navy-700: 200 77.4% 24.3%; /* #0e4e6e */
+    --navy-600: 199.3 71.4% 31.6%; /* #17658a */
+    --navy-500: 199.2 44.7% 42.5%; /* #3c7e9d */
+    --navy-400: 200 29.5% 56.1%; /* #6e9ab0 */
+    --navy-300: 200 29.6% 72.2%; /* #a3bfcd */
+    --navy-200: 200.9 30.7% 85.3%; /* #cedde5 */
+    --navy-100: 200 35.3% 93.3%; /* #e8f0f4 */
+
+    /* Teal (accent) */
+    --teal-700: 183.5 74.3% 27.5%; /* #12747a */
+    --teal-600: 182.7 72% 36.5%; /* #1a9aa0 */
+    --teal-500: 181.6 63.4% 46.1%; /* #2bbcc0 */
+    --teal-400: 181.6 55.3% 59.6%; /* #5fced1 */
+    --teal-300: 181.5 56.6% 72%; /* #8fdee0 */
+    --teal-200: 181.2 57.6% 83.3%; /* #bceced */
+    --teal-100: 182.9 60% 93.1%; /* #e3f7f8 */
+
+    /* Neutralen: koele papiergrijzen */
+    --paper: 0 0% 100%; /* #ffffff */
+    --mist-50: 195 33.3% 97.6%; /* #f7fafb */
+    --mist-100: 197.1 28% 95.1%; /* #eff4f6 */
+    --mist-200: 196.4 22.4% 90.4%; /* #e1e9ec */
+    --mist-300: 197.6 18.7% 82.2%; /* #c9d5da */
+    --mist-400: 200 13.5% 65.1%; /* #9aaab2 */
+    --mist-500: 200.8 10.8% 47.1%; /* #6b7c85 */
+    --mist-600: 201.6 14.5% 33.9%; /* #4a5a63 */
+
+    /*
+      Status: gedempt, alleen in feedback. De -700 is de tekstkleur op het
+      zachte vlak: de -500 haalt daar geen 4.5:1.
+    */
+    --success-100: 157.5 38.1% 91.8%; /* #e2f2ec */
+    --success-500: 159.4 50.3% 36.3%; /* #2e8b6b */
+    --success-700: 159.5 51.8% 27.6%; /* #226b52 */
+    --warning-100: 37.2 78.4% 92.7%; /* #fbf0de */
+    --warning-500: 32.5 67.7% 53.9%; /* #d9903a */
+    --warning-700: 34.6 72.8% 31.8%; /* #8c5a16 */
+    --danger-100: 6.3 57.6% 93.5%; /* #f8e7e5 */
+    --danger-500: 4 47.8% 51.2%; /* #be4f47 */
+    --danger-700: 4.6 51% 40%; /* #9a3a32 */
+
+    --background: var(--paper);
+    --foreground: var(--navy-800);
+    --card: var(--paper);
+    --card-foreground: var(--navy-800);
+    --popover: var(--paper);
+    --popover-foreground: var(--navy-800);
+    --primary: var(--navy-800);
+    --primary-foreground: var(--paper);
+    --primary-hover: var(--navy-700);
+    --secondary: var(--mist-100);
+    --secondary-foreground: var(--navy-800);
+    --secondary-hover: var(--navy-100);
+    --muted: var(--mist-100);
+    --muted-foreground: var(--mist-600);
+    --accent: var(--mist-100);
+    --accent-foreground: var(--navy-800);
+    --destructive: var(--danger-500);
+    --destructive-foreground: var(--paper);
+    --destructive-soft: var(--danger-100);
+    --destructive-strong: var(--danger-700);
+    --success: var(--success-500);
+    --success-foreground: var(--paper);
+    --success-soft: var(--success-100);
+    --success-strong: var(--success-700);
+    --warning: var(--warning-500);
+    --warning-foreground: var(--navy-900);
+    --warning-soft: var(--warning-100);
+    --warning-strong: var(--warning-700);
+    --border: var(--mist-200);
+    --border-alpha: 1;
+    --input: var(--mist-300);
+    --input-alpha: 1;
+    --ring: var(--teal-500);
+
+    /* Navy-900 op 44% met 3px blur: het enige doorzichtige vlak */
+    --scrim: var(--navy-900);
+    --scrim-alpha: 0.44;
+
+    /*
+      Teal is het enige accent: focusring, eyebrow, icooncirkels en hooguit één
+      accentknop per scherm. `ink` is het enige donkere vlak.
+    */
+    --brand: var(--teal-500);
+    --brand-foreground: var(--navy-900);
+    --brand-hover: var(--teal-600);
+    --brand-soft: var(--teal-100);
+    --brand-strong: var(--teal-700);
+    --ink: var(--navy-800);
+    --ink-foreground: var(--paper);
+    --ink-muted: var(--navy-300);
+    --ink-accent: var(--teal-300); /* eyebrow op het ink-vlak */
+
+    --sidebar: var(--mist-50);
+    --sidebar-foreground: var(--navy-800);
+    --sidebar-accent: var(--navy-100);
+    --sidebar-accent-foreground: var(--navy-800);
+    --sidebar-border: var(--mist-200);
+    --sidebar-border-alpha: 1;
+  }
+
+  /*
+    Het design system beschrijft geen donkere modus. Jona BI houdt hem, zoals
+    TirgumAI: hij volgt het navy-blok en valt nooit terug op zwart-grijs.
+  */
+  .dark {
+    --background: var(--navy-900);
+    --foreground: var(--mist-100);
+    --card: var(--navy-800);
+    --card-foreground: var(--mist-100);
+    --popover: var(--navy-800);
+    --popover-foreground: var(--mist-100);
+    --primary: var(--teal-500);
+    --primary-foreground: var(--navy-900);
+    --primary-hover: var(--teal-400);
+    --secondary: var(--navy-700);
+    --secondary-foreground: var(--mist-100);
+    --secondary-hover: var(--navy-600);
+    --muted: var(--navy-700);
+    --muted-foreground: var(--navy-300);
+    --accent: var(--navy-700);
+    --accent-foreground: var(--mist-100);
+    --destructive: 4.4 59.1% 63.5%; /* #d9736b */
+    --destructive-foreground: var(--navy-900);
+    --destructive-soft: var(--navy-700);
+    --destructive-strong: 5.3 75.5% 79.2%; /* #f2a9a2 */
+    --success: 158.6 36.4% 53.1%; /* #5cb394 */
+    --success-foreground: var(--navy-900);
+    --success-soft: var(--navy-700);
+    --success-strong: 155 46.8% 69.8%; /* #8ed6b8 */
+    --warning: 32.7 68.7% 64.9%; /* #e3ab68 */
+    --warning-foreground: var(--navy-900);
+    --warning-soft: var(--navy-700);
+    --warning-strong: 34.6 76.4% 75.1%; /* #f0c78f */
+    --border: var(--paper); /* #ffffff1f */
+    --border-alpha: 0.12;
+    --input: var(--paper); /* #ffffff2e */
+    --input-alpha: 0.18;
+    --ring: var(--teal-400);
+
+    --scrim: var(--navy-900);
+    --scrim-alpha: 0.62;
+
+    --brand: var(--teal-400);
+    --brand-foreground: var(--navy-900);
+    --brand-hover: var(--teal-300);
+    --brand-soft: var(--navy-700);
+    --brand-strong: var(--teal-300);
+    --ink: var(--navy-900);
+    --ink-foreground: var(--mist-100);
+    --ink-muted: var(--navy-400);
+    --ink-accent: var(--teal-300);
+
+    --sidebar: var(--navy-900);
+    --sidebar-foreground: var(--mist-100);
+    --sidebar-accent: var(--navy-700);
+    --sidebar-accent-foreground: var(--mist-100);
+    --sidebar-border: var(--paper); /* #ffffff1f */
+    --sidebar-border-alpha: 0.12;
+  }
+}
+
+@layer base {
+  /*
+    Displayserif voor de koppen, geometrische sans vanaf h4: de kleine koppen
+    staan tussen de interface-tekst en moeten daar niet uit springen.
+  */
+  h1,
+  h2,
+  h3 {
+    @apply font-serif font-medium tracking-[-0.015em];
+    color: hsl(var(--navy-900));
+  }
+  .dark :is(h1, h2, h3) {
+    color: hsl(var(--foreground));
+  }
+
+  /*
+    Focus is altijd zichtbaar: een teal rand plus een zachte ring. Nooit
+    weggehaald, ook niet op een donker vlak.
+  */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* De enige kapitalenstijl in het systeem; staat los van de koppen. */
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.14em] text-brand-strong;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* UI-chrome: geen tekstselectie op labels, navigatie, knoppen */
+  aside,
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"],
+  label {
+    @apply select-none;
+  }
+}
+
+/*
+ * Scrollbalk: een dunne, zwevende pil in inkt (6px, 4px van de rand, geen
+ * spoor) die alleen verschijnt als de muis over het scrollgebied gaat. Scrollen
+ * met wiel, trackpad en toetsenbord werkt altijd. Alleen bij een muis: op
+ * aanraakschermen houdt het systeem zijn eigen balk. Zet nergens
+ * `scrollbar-color` of `scrollbar-width` (behalve `none`): dan negeert Chromium
+ * deze regels.
+ *
+ * Chromium tekent de delen van een eigen scrollbalk pas opnieuw als de stijl
+ * van het element zelf verandert; `:hover::-webkit-scrollbar-thumb` alleen
+ * blijft dus onzichtbaar. Een niet-overervende variabele die bij hover
+ * verandert, dwingt dat af zonder iets zichtbaars of de kinderen te raken.
+ */
+@property --jona-scrollbar-hover {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  :hover {
+    --jona-scrollbar-hover: 1;
+  }
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    background: transparent;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: 4px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: transparent;
+  }
+  :hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--foreground) / 0.3);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground) / 0.45);
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background-color: hsl(var(--foreground) / 0.6);
+  }
+}
+
+/* Firefox kent geen ::-webkit-scrollbar: daar een dunne balk in dezelfde kleur. */
+@supports not selector(::-webkit-scrollbar) {
+  @media (hover: hover) and (pointer: fine) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--foreground) / 0.3) transparent;
+    }
+  }
+}
+
+/*
+ * Sluitknop van een melding: geen zwart rondje linksboven (sonner), maar een
+ * licht kruisje rechts in de melding, verticaal gecentreerd. De selector is
+ * specifieker dan de stijlen die sonner zelf injecteert, ook die voor donker.
+ */
+[data-sonner-toaster][data-theme] [data-sonner-toast][data-styled="true"]:has([data-close-button]) {
+  padding-right: 2.75rem;
+}
+[data-sonner-toaster][data-theme] [data-sonner-toast][data-styled="true"] [data-close-button] {
+  left: auto;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--muted-foreground) / 0.7);
+  transition: color 0.15s, background-color 0.15s;
+}
+[data-sonner-toaster][data-theme] [data-sonner-toast][data-styled="true"] [data-close-button]:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+[data-sonner-toaster][data-theme] [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.35);
+  color: hsl(var(--foreground));
+}
+[data-sonner-toaster][data-theme] [data-sonner-toast][data-styled="true"] [data-close-button] svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

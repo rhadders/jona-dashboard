@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next/
+out/
+
+# Build / output
+dist/
+build/
+
+# TypeScript (incremental)
+*.tsbuildinfo
+next-env.d.ts
+
+# ESLint
+.eslintcache
+
+# Tests
+coverage/
+
+# Omgevingsvariabelen (geen geheimen committen)
+.env
+.env*.local
+!.env.example
+
+# Logs
+npm-debug.log*
+*.log
+
+# Certificaten / sleutels
+*.pem
+
+# Editor & OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+*~
+/.claude/*
+!/.claude/settings.json

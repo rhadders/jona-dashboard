@@ -1,0 +1,14 @@
+# Alles wat de build niet nodig heeft of niet in het image hoort.
+.git
+.github
+.claude
+.next
+node_modules
+docs
+coverage
+*.tsbuildinfo
+.env*
+!.env.example
+npm-debug.log*
+Dockerfile
+.dockerignore
