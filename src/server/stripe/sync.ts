@@ -1,9 +1,14 @@
 import type { ToolConfig } from "@/config/tools";
 import { amsterdamDay } from "@/lib/format";
-import { toSubscriptionRow, type StripeSubscriptionLike, type SubscriptionRow } from "@/lib/stripe/mrr";
+import { toSubscriptionRow, type StripeSubscriptionLike, type SubscriptionRow, type VatOptions } from "@/lib/stripe/mrr";
 import { query } from "../db";
 import { recordStatus } from "../status";
 import { stripeFor } from "./client";
+
+/** Hoe de btw voor deze tool uit de maandomzet gaat; zie `inclusiveVatPercent` in de config. */
+export function vatOptions(tool: ToolConfig | undefined): VatOptions {
+  return { fallbackInclusiveVatPercent: tool?.inclusiveVatPercent };
+}
 
 export async function upsertSubscription(toolId: string, row: SubscriptionRow): Promise<void> {
   await query(
@@ -47,7 +52,7 @@ export async function reconcileStripe(tool: ToolConfig, now: Date = new Date()):
   let count = 0;
   try {
     for await (const subscription of stripe.subscriptions.list({ status: "all", limit: 100 })) {
-      await upsertSubscription(tool.id, toSubscriptionRow(subscription as unknown as StripeSubscriptionLike));
+      await upsertSubscription(tool.id, toSubscriptionRow(subscription as unknown as StripeSubscriptionLike, vatOptions(tool)));
       count += 1;
     }
   } catch (error) {

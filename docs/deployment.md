@@ -73,13 +73,39 @@ dashboard horen overeen te komen met het Stripe-dashboard.
 ## Wat de MRR wel en niet meetelt
 
 De MRR is de prijs maal het aantal van elk lopend abonnement, omgerekend
-naar een maand. Kortingen (coupons) en prijzen inclusief btw worden in deze
-versie niet gecorrigeerd, en alleen abonnementen in euro tellen mee.
+naar een maand, zonder btw. Alleen abonnementen in euro tellen mee, en
+kortingen (coupons) worden in deze versie niet gecorrigeerd.
+
+Btw gaat er zo uit:
+
+- Hangt er een inclusief btw-tarief aan de regel of aan het abonnement, dan
+  gaat dat percentage eraf (€ 12,95 inclusief 21% telt als € 10,70). Zo
+  staan Jona Bestuur en Jona Giften ingericht.
+- Kent Stripe de prijs als inclusief btw maar hangt er geen tarief aan
+  (Stripe Tax berekent de btw dan per factuur), dan geldt het percentage uit
+  `inclusiveVatPercent` in `src/config/tools.ts`.
+- Bij een exclusief tarief is de prijs al zonder btw.
+- Weet Stripe niets van de btw, dan blijft het bedrag staan. Dat geldt nu
+  voor Selaread: daar zit de btw in de prijs (21% in Nederland, 0%
+  daarbuiten) en rekent Selaread hem zelf uit bij de maandafsluiting. De MRR
+  van Selaread is dus inclusief btw.
+
+Na een wijziging in deze regels klopt de stand pas na de eerstvolgende
+nachtelijke controle; "Haal nu op" op Instellingen rekent meteen opnieuw.
+
+## Het uitgeversaandeel van Selaread
+
+Van de maandomzet van Selaread gaat een vast percentage naar de uitgevers:
+standaard 70%, in te stellen met `PARTNER_SHARE_PERCENT_SELAREAD` (een heel
+getal van 0 tot 100). De detailpagina toont het aandeel en wat overblijft.
+Het is een benadering: Selaread zelf rekent het aandeel over de netto
+inkomsten na btw en kosten. Later komt het bedrag uit Stripe Connect.
 
 ## Als iets niet klopt
 
 - **Een koppeling staat op oranje**: Instellingen toont de reden ("Het token
-  wordt geweigerd", "Het adres antwoordt met 500", "Ongeldig veld: …").
+  wordt geweigerd", "Het adres bestaat niet of het token klopt niet", "Het
+  adres antwoordt met 500", "Ongeldig veld: …").
 - **De cijfers lopen achter**: kijk op Instellingen wanneer de laatste
   ophaalronde was. Geen ronde betekent dat het schedule niet loopt of dat
   `CRON_SECRET` niet klopt.

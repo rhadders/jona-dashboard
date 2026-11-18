@@ -13,7 +13,8 @@ Authorization: Bearer <token van deze tool>
 
 - Een eigen token per tool, in de omgeving van de tool en van het dashboard
   (`STATS_TOKEN_<KEY>`). Vergelijk het in constante tijd.
-- Zonder of met een verkeerd token: `401`.
+- Zonder of met een verkeerd token: `401`, of `404` als de tool het adres
+  verbergt voor wie het token niet kent.
 - Het antwoord is JSON, niet gecachet (`Cache-Control: no-store`).
 - Alleen aantallen en interne verwijzingen. **Nooit** een naam, e-mailadres
   of andere persoonsgegevens.

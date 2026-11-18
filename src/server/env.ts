@@ -1,4 +1,5 @@
 import type { ToolConfig } from "@/config/tools";
+import { parsePartnerSharePercent } from "@/lib/stripe/mrr";
 
 /*
  * De omgeving van de container. Sleutels komen alleen hier langs; geen andere
@@ -25,6 +26,16 @@ export function toolEnv(tool: ToolConfig): ToolEnv {
     stripeApiKey: read(`STRIPE_API_KEY_${tool.envKey}`),
     stripeWebhookSecret: read(`STRIPE_WEBHOOK_SECRET_${tool.envKey}`),
   };
+}
+
+/**
+ * Het partneraandeel van een tool als percentage, of `null` als de tool er geen
+ * heeft. PARTNER_SHARE_PERCENT_<KEY> gaat voor de standaard uit de config; een
+ * waarde die geen heel getal van 0 tot 100 is, wordt genegeerd.
+ */
+export function partnerSharePercent(tool: ToolConfig): number | null {
+  if (!tool.partnerShare) return null;
+  return parsePartnerSharePercent(read(`PARTNER_SHARE_PERCENT_${tool.envKey}`)) ?? tool.partnerShare.percent;
 }
 
 export const databaseUrl = () => read("DATABASE_URL");

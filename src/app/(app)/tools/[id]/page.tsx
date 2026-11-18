@@ -11,7 +11,9 @@ import { StatusLine } from "@/components/app/status";
 import { findTool } from "@/config/tools";
 import { euro, euroChange, number, percent, relativeMoment, share } from "@/lib/format";
 import { parsePeriod } from "@/lib/metrics/period";
+import { partnerShareCents } from "@/lib/stripe/mrr";
 import { toolStatus, type IntegrationState } from "@/lib/status/tool-status";
+import { partnerSharePercent } from "@/server/env";
 import { getToolDetail } from "@/server/queries";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ periode?: string | string[] }> };
@@ -40,6 +42,9 @@ export default async function ToolPage({ params, searchParams }: Props) {
   const changeNote =
     figures.mrrChangeCents === null ? undefined : `${euroChange(figures.mrrChangeCents)}${changePct !== null && changePct !== 0 ? ` · ${Math.abs(changePct)}%` : ""}`;
   const canceledPct = figures.canceled > 0 && figures.payingAtStart ? percent(figures.canceled, figures.payingAtStart) : null;
+
+  const partnerPercent = partnerSharePercent(tool);
+  const partnerCents = partnerPercent === null ? 0 : partnerShareCents(figures.mrrCents, partnerPercent);
 
   const usageRows = stats
     ? [
@@ -109,6 +114,18 @@ export default async function ToolPage({ params, searchParams }: Props) {
             <h2 className="text-xl">Gebruik</h2>
             <DataList rows={usageRows} />
             <p className="text-sm text-muted-foreground">Actief: {tool.activeMeans.charAt(0).toLowerCase() + tool.activeMeans.slice(1)}.</p>
+          </div>
+        ) : null}
+
+        {tool.partnerShare && partnerPercent !== null ? (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">Verdeling</h2>
+            <DataList
+              rows={[
+                { label: `${tool.partnerShare.label}, ${partnerPercent}%`, value: euro(partnerCents) },
+                { label: "Blijft over", value: `${euro(figures.mrrCents - partnerCents)} · ${100 - partnerPercent}%` },
+              ]}
+            />
           </div>
         ) : null}
 

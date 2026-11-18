@@ -1,6 +1,7 @@
 import type { ToolConfig } from "@/config/tools";
 import { amsterdamDay } from "@/lib/format";
 import { parseStats } from "@/lib/stats/contract";
+import { statsFailureReason } from "@/lib/stats/failure";
 import { query } from "../db";
 import { toolEnv } from "../env";
 import { recordStatus } from "../status";
@@ -31,8 +32,7 @@ export async function collectStats(tool: ToolConfig, now: Date = new Date()): Pr
   } catch {
     return fail("Het adres is niet bereikbaar");
   }
-  if (response.status === 401 || response.status === 403) return fail("Het token wordt geweigerd");
-  if (!response.ok) return fail(`Het adres antwoordt met ${response.status}`);
+  if (!response.ok) return fail(statsFailureReason(response.status));
 
   const json: unknown = await response.json().catch(() => null);
   const parsed = parseStats(json, tool.id);

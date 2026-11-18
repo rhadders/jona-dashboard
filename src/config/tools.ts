@@ -17,6 +17,17 @@ export type ToolConfig = {
   activeMeans: string;
   /** Labels bij de vrije tellers uit het stats-adres. Een teller zonder label toont zijn sleutel. */
   counters: Record<string, string>;
+  /**
+   * Het btw-percentage dat uit de maandomzet gaat als Stripe de prijs als
+   * inclusief btw kent maar er geen tarief aan het abonnement hangt. Hangt er
+   * wel een tarief aan, dan geldt dat. Zie `src/lib/stripe/mrr.ts`.
+   */
+  inclusiveVatPercent?: number;
+  /**
+   * Een vast deel van de maandomzet dat naar een partner gaat. Het percentage
+   * is de standaard; PARTNER_SHARE_PERCENT_<KEY> in de omgeving gaat ervoor.
+   */
+  partnerShare?: { label: string; percent: number };
 };
 
 export const TOOLS: readonly ToolConfig[] = [
@@ -30,6 +41,7 @@ export const TOOLS: readonly ToolConfig[] = [
       vergaderingen_gemaakt: "Vergaderingen gemaakt",
       vergaderingen_geopend: "Vergaderingen geopend",
     },
+    inclusiveVatPercent: 21,
   },
   {
     id: "jona-giften",
@@ -42,6 +54,7 @@ export const TOOLS: readonly ToolConfig[] = [
       giftenoverzichten_verstuurd: "Giftenoverzichten verstuurd",
       incassobatches: "Incassobatches",
     },
+    inclusiveVatPercent: 21,
   },
   {
     id: "selaread",
@@ -53,6 +66,7 @@ export const TOOLS: readonly ToolConfig[] = [
       nummers_gelezen: "Gelezen nummers",
       vouchers_ingewisseld: "Ingewisselde vouchers",
     },
+    partnerShare: { label: "Uitgeversaandeel", percent: 70 },
   },
   {
     id: "actuelegegevens",

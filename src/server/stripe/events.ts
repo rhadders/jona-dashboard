@@ -1,8 +1,9 @@
 import type Stripe from "stripe";
+import { findTool } from "@/config/tools";
 import { toSubscriptionRow, type StripeSubscriptionLike } from "@/lib/stripe/mrr";
 import { isSubscriptionEvent, signalFromEvent } from "@/lib/stripe/signals";
 import { query } from "../db";
-import { snapshotMrr, upsertSubscription } from "./sync";
+import { snapshotMrr, upsertSubscription, vatOptions } from "./sync";
 
 /**
  * Verwerkt één geverifieerd webhookbericht. Stripe kan hetzelfde bericht
@@ -18,7 +19,7 @@ export async function handleStripeEvent(toolId: string, event: Stripe.Event): Pr
   if (inserted.length === 0) return "duplicate";
 
   if (isSubscriptionEvent(event.type)) {
-    await upsertSubscription(toolId, toSubscriptionRow(event.data.object as unknown as StripeSubscriptionLike));
+    await upsertSubscription(toolId, toSubscriptionRow(event.data.object as unknown as StripeSubscriptionLike, vatOptions(findTool(toolId))));
     await snapshotMrr(toolId);
   }
 
