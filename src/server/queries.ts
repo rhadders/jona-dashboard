@@ -2,6 +2,7 @@ import { TOOLS, type ToolConfig } from "@/config/tools";
 import type { Overview, SignalRow, ToolFigures } from "@/lib/dashboard-types";
 import { amsterdamDay, shiftDay } from "@/lib/format";
 import type { Period } from "@/lib/metrics/period";
+import { revenueSummary } from "@/lib/metrics/revenue";
 import { sumSeries, valueAtOrBefore, type DayPoint } from "@/lib/metrics/series";
 import { statsSchema } from "@/lib/stats/contract";
 import type { SignalKind } from "@/lib/stripe/signals";
@@ -104,6 +105,7 @@ async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Da
       activeWeekSeries: usageSeries((row) => row.week),
       activeMonthSeries: usageSeries((row) => row.month),
       newPaying30d: env.stripeApiKey ? Number(newPaying.find((row) => row.tool_id === tool.id)?.count ?? 0) : null,
+      revenue: tool.revenueFrom === "stats" ? revenueSummary(parsed?.success ? parsed.data : null, today) : null,
     };
   });
 }
@@ -137,6 +139,7 @@ export async function getOverview(period: Period, now: Date = new Date()): Promi
     trialing: tools.reduce((sum, tool) => sum + tool.trialing, 0),
     canceled: tools.reduce((sum, tool) => sum + tool.canceled, 0),
     signups30d: sumOrNull(tools.map((tool) => tool.stats?.signups.last_30d ?? null)),
+    ownRevenue30dCents: sumOrNull(tools.map((tool) => tool.revenue?.last30dCents ?? null)),
     mrrSeries: sumSeries(tools.map((tool) => tool.mrrSeries)),
     signals,
   };

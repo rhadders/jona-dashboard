@@ -34,4 +34,12 @@ describe("toolStatus", () => {
     expect(toolStatus({ stats: waiting, stripe: fine, failedPayments: 0 }).label).toBe("Wacht op de eerste ophaalronde");
     expect(toolStatus({ stats: fine, stripe: fine, failedPayments: 0 })).toEqual({ tone: "good", label: "Alles in orde" });
   });
+
+  it("mist Stripe niet bij een tool die zijn omzet zelf aanlevert", () => {
+    expect(toolStatus({ stats: fine, stripe: off, failedPayments: 0, stripeNeeded: false })).toEqual({ tone: "good", label: "Alles in orde" });
+    expect(toolStatus({ stats: waiting, stripe: off, failedPayments: 0, stripeNeeded: false }).label).toBe("Wacht op de eerste ophaalronde");
+    expect(toolStatus({ stats: off, stripe: off, failedPayments: 0, stripeNeeded: false }).label).toBe("Nog niet gekoppeld");
+    // is Stripe toch gekoppeld, dan telt hij gewoon mee
+    expect(toolStatus({ stats: fine, stripe: waiting, failedPayments: 0, stripeNeeded: false }).label).toBe("Wacht op de eerste ophaalronde");
+  });
 });

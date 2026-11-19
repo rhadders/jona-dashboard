@@ -43,6 +43,7 @@ export default async function SettingsPage() {
             const env = toolEnv(figures.tool);
             const stats = describe(figures.statsState);
             const stripe = describe(figures.stripeState);
+            const showStripe = figures.tool.revenueFrom !== "stats" || figures.stripeState.configured;
             return (
               <div key={figures.tool.id} className="flex flex-col gap-4 border-t py-6">
                 <h3 className="font-sans text-lg font-medium text-foreground">{figures.tool.name}</h3>
@@ -53,30 +54,48 @@ export default async function SettingsPage() {
                       <StatusLine tone={stats.tone} label={stats.label} />
                     </dd>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <dt className="text-sm text-muted-foreground">Stripe</dt>
-                    <dd>
-                      <StatusLine tone={stripe.tone} label={stripe.label} />
-                    </dd>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <dt className="text-sm text-muted-foreground">Webhook van Stripe</dt>
-                    <dd>
-                      <StatusLine tone={env.stripeWebhookSecret ? "good" : "neutral"} label={env.stripeWebhookSecret ? "Geheim ingesteld" : "Geheim ontbreekt"} />
-                    </dd>
-                  </div>
+                  {showStripe ? (
+                    <>
+                      <div className="flex flex-col gap-1">
+                        <dt className="text-sm text-muted-foreground">Stripe</dt>
+                        <dd>
+                          <StatusLine tone={stripe.tone} label={stripe.label} />
+                        </dd>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <dt className="text-sm text-muted-foreground">Webhook van Stripe</dt>
+                        <dd>
+                          <StatusLine tone={env.stripeWebhookSecret ? "good" : "neutral"} label={env.stripeWebhookSecret ? "Geheim ingesteld" : "Geheim ontbreekt"} />
+                        </dd>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <dt className="text-sm text-muted-foreground">Omzet</dt>
+                      <dd>
+                        <StatusLine tone={figures.revenue ? "good" : "neutral"} label={figures.revenue ? "Komt uit het stats-adres" : "Het stats-adres levert nog geen omzet aan"} />
+                      </dd>
+                    </div>
+                  )}
                 </dl>
                 <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                  <p>
-                    Webhook-adres voor Stripe:{" "}
-                    <code className="break-words font-mono text-xs text-foreground">
-                      {base}/api/webhooks/stripe/{figures.tool.id}
-                    </code>
-                  </p>
+                  {showStripe ? (
+                    <p>
+                      Webhook-adres voor Stripe:{" "}
+                      <code className="break-words font-mono text-xs text-foreground">
+                        {base}/api/webhooks/stripe/{figures.tool.id}
+                      </code>
+                    </p>
+                  ) : null}
                   <p>
                     Omgevingsvariabelen: <code className="font-mono text-xs">STATS_URL_{figures.tool.envKey}</code>,{" "}
-                    <code className="font-mono text-xs">STATS_TOKEN_{figures.tool.envKey}</code>, <code className="font-mono text-xs">STRIPE_API_KEY_{figures.tool.envKey}</code>,{" "}
-                    <code className="font-mono text-xs">STRIPE_WEBHOOK_SECRET_{figures.tool.envKey}</code>
+                    <code className="font-mono text-xs">STATS_TOKEN_{figures.tool.envKey}</code>
+                    {showStripe ? (
+                      <>
+                        , <code className="font-mono text-xs">STRIPE_API_KEY_{figures.tool.envKey}</code>,{" "}
+                        <code className="font-mono text-xs">STRIPE_WEBHOOK_SECRET_{figures.tool.envKey}</code>
+                      </>
+                    ) : null}
                   </p>
                 </div>
               </div>
