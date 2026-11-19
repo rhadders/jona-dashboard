@@ -67,3 +67,32 @@ Authorization: Bearer <beheertoken van deze tool>
 | `last_active_at` | Het laatste moment van de kernactie van de tool. |
 
 Alle momenten zijn ISO 8601 met tijdzone. Onbekende velden worden genegeerd.
+
+## Handelingen
+
+Met hetzelfde token kan het dashboard drie dingen doen op één account. Dit
+zijn de enige plekken waar het dashboard iets bij een tool wijzigt.
+
+```
+POST /api/internal/organisaties/<ref>/vrijstelling      { "vrijgesteld": true | false }
+POST /api/internal/organisaties/<ref>/proef             { "tot": "<moment, ISO 8601>" }
+POST /api/internal/organisaties/<ref>/stripe-koppeling  (zonder inhoud)
+```
+
+| Handeling | Wat de tool doet | Wanneer de tool weigert |
+| --- | --- | --- |
+| `vrijstelling` | Stelt het account vrij van het abonnement, of maakt dat ongedaan. | Nooit. |
+| `proef` | Zet het einde van de proef later. De proef wordt er nooit korter van. | Meer dan 90 dagen vooruit of in het verleden (`400`); bij een lopend abonnement (`409`). |
+| `stripe-koppeling` | Wist de klant, het abonnement en de stand van Stripe bij het account. | Bij een lopend abonnement (`409`). |
+
+- Een geslaagd antwoord is `{ "account": { ... } }`: het account zoals het er
+  daarna voor staat, in de vorm van de lijst.
+- Een fout is `{ "fout": "<uitleg in gewone woorden>" }` met `400` (ongeldige
+  invoer) of `409` (kan nu niet); een onbekend account of een verkeerd token
+  geeft `404`. Het dashboard toont de uitleg van de tool.
+- De tool legt elke handeling vast in zijn eigen auditlog. Het dashboard
+  bewaart in `admin_actions` de tool, de verwijzing, de soort en het moment,
+  zonder naam.
+- In het dashboard loopt een handeling via
+  `POST /api/tools/<tool>/organisaties/<ref>`, alleen met een sessie en van
+  het dashboard zelf, en pas na een bevestiging op het scherm.

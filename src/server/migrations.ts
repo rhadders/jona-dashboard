@@ -113,6 +113,20 @@ export const MIGRATIONS: readonly Migration[] = [
       create index signals_occurred on signals (occurred_at desc);
     `,
   },
+  {
+    id: "004_admin_actions",
+    sql: `
+      create table admin_actions (
+        id bigserial primary key,
+        tool_id text not null,
+        account_ref text not null,
+        kind text not null,
+        detail jsonb not null default '{}',
+        performed_at timestamptz not null default now()
+      );
+      create index admin_actions_tool on admin_actions (tool_id, performed_at desc);
+    `,
+  },
 ];
 
 /** Een willekeurig maar vast getal voor de advisory lock van dit schema. */
