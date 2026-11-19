@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   inclusiveVatPercent,
+  isForProduct,
+  isInvoiceForProduct,
   isPayingStatus,
   isTrialStatus,
   monthlyCents,
@@ -195,5 +197,39 @@ describe("partneraandeel", () => {
     expect(parsePartnerSharePercent("70%")).toBeNull();
     expect(parsePartnerSharePercent("")).toBeNull();
     expect(parsePartnerSharePercent(null)).toBeNull();
+  });
+});
+
+describe("een gedeeld Stripe-account", () => {
+  const subscription = (product: string | { id: string } | undefined) => ({
+    items: { data: [{ price: { product, unit_amount: 11940, recurring: { interval: "year" as const, interval_count: 1 } } }] },
+  });
+
+  it("telt elk abonnement als de tool geen product heeft", () => {
+    expect(isForProduct(subscription("jona_giften_abonnement"), undefined)).toBe(true);
+    expect(isForProduct(subscription(undefined), undefined)).toBe(true);
+  });
+
+  it("telt alleen een abonnement op het eigen product", () => {
+    expect(isForProduct(subscription("jona_giften_abonnement"), "jona_giften_abonnement")).toBe(true);
+    expect(isForProduct(subscription({ id: "jona_giften_abonnement" }), "jona_giften_abonnement")).toBe(true);
+    expect(isForProduct(subscription("jona_bestuur_abonnement"), "jona_giften_abonnement")).toBe(false);
+    expect(isForProduct(subscription(undefined), "jona_giften_abonnement")).toBe(false);
+  });
+
+  it("herkent het product van een factuur in de nieuwe en de oude vorm", () => {
+    const nieuw = { lines: { data: [{ pricing: { price_details: { product: "jona_bestuur_abonnement" } } }] } };
+    const oud = { lines: { data: [{ price: { product: "jona_bestuur_abonnement" } }] } };
+    for (const invoice of [nieuw, oud]) {
+      expect(isInvoiceForProduct(invoice, "jona_bestuur_abonnement")).toBe(true);
+      expect(isInvoiceForProduct(invoice, "jona_giften_abonnement")).toBe(false);
+      expect(isInvoiceForProduct(invoice, undefined)).toBe(true);
+    }
+  });
+
+  it("telt een factuur zonder product bij de regels mee", () => {
+    expect(isInvoiceForProduct({ lines: { data: [{}] } }, "jona_giften_abonnement")).toBe(true);
+    expect(isInvoiceForProduct({}, "jona_giften_abonnement")).toBe(true);
+    expect(isInvoiceForProduct(null, "jona_giften_abonnement")).toBe(true);
   });
 });

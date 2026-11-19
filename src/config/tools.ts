@@ -2,7 +2,8 @@
  * De tools die het dashboard volgt. Een tool toevoegen is een item erbij plus
  * de vier omgevingsvariabelen met zijn `envKey` (zie `.env.example`):
  * STATS_URL_<KEY>, STATS_TOKEN_<KEY>, STRIPE_API_KEY_<KEY> en
- * STRIPE_WEBHOOK_SECRET_<KEY>. Geen andere code. Een tool met
+ * STRIPE_WEBHOOK_SECRET_<KEY>. Geen andere code. Tools die een Stripe-account
+ * delen krijgen elk een `stripeProductId` en mogen dezelfde sleutel gebruiken. Een tool met
  * `revenueFrom: "stats"` heeft de twee van Stripe niet nodig.
  */
 
@@ -30,6 +31,12 @@ export type ToolConfig = {
    */
   partnerShare?: { label: string; percent: number };
   /**
+   * Het Stripe-product van deze tool. Nodig als de tool zijn Stripe-account
+   * met een andere tool deelt: alleen abonnementen en facturen op dit product
+   * tellen dan mee. Zonder product telt het hele account.
+   */
+  stripeProductId?: string;
+  /**
    * Waar de omzet vandaan komt. Standaard Stripe (abonnementen, MRR). Met
    * "stats" levert de tool zijn betaalde omzet zelf aan in het stats-adres
    * (`revenue`): voor een tool die per keer verkoopt, of die zijn
@@ -51,6 +58,7 @@ export const TOOLS: readonly ToolConfig[] = [
       vergaderingen_geopend: "Vergaderingen geopend",
     },
     inclusiveVatPercent: 21,
+    stripeProductId: "jona_bestuur_abonnement",
   },
   {
     id: "jona-giften",
@@ -64,6 +72,7 @@ export const TOOLS: readonly ToolConfig[] = [
       incassobatches: "Incassobatches",
     },
     inclusiveVatPercent: 21,
+    stripeProductId: "jona_giften_abonnement",
   },
   {
     id: "selaread",

@@ -14,6 +14,11 @@ describe("tools", () => {
     }
   });
 
+  it("geeft elk Stripe-product aan hooguit één tool", () => {
+    const products = TOOLS.flatMap((t) => (t.stripeProductId ? [t.stripeProductId] : []));
+    expect(new Set(products).size).toBe(products.length);
+  });
+
   it("vindt een tool op id", () => {
     expect(findTool("selaread")?.name).toBe("Selaread");
     expect(findTool("bestaat-niet")).toBeUndefined();

@@ -51,7 +51,7 @@ heeft alleen de twee van het stats-adres nodig.
 
 ### Stripe
 
-Elke tool heeft een eigen Stripe-account. In dat account:
+Elke tool hangt aan een Stripe-account. In dat account:
 
 1. **Restricted key** (Developers → API keys → Create restricted key) met
    alleen leesrechten op Subscriptions, Customers en Invoices. Zet hem in
@@ -62,6 +62,14 @@ Elke tool heeft een eigen Stripe-account. In dat account:
    `customer.subscription.updated`, `customer.subscription.deleted`,
    `invoice.paid` en `invoice.payment_failed`. Zet het signing secret in
    `STRIPE_WEBHOOK_SECRET_<KEY>`.
+
+**Een gedeeld account.** Jona Bestuur en Jona Giften delen één
+Stripe-account. Elk heeft een `stripeProductId` in `src/config/tools.ts`:
+alleen abonnementen en facturen op dat product tellen mee, en de nachtelijke
+controle ruimt op wat er niet bij hoort. Beide tools krijgen een eigen
+webhook in dat account (elk met een eigen signing secret) en mogen dezelfde
+restricted key gebruiken. Een tool zonder `stripeProductId` telt het hele
+account.
 
 Het precieze adres per tool staat op Instellingen. Rol opnieuw uit en klik
 daar op "Haal nu op": de koppelingen horen dan op "In orde" te staan.
