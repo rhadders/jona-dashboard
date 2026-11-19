@@ -15,6 +15,8 @@ const read = (name: string): string | null => {
 export type ToolEnv = {
   statsUrl: string | null;
   statsToken: string | null;
+  /** Het token voor de beheeradressen van de tool; een ander dan dat van de cijfers. */
+  adminToken: string | null;
   stripeApiKey: string | null;
   stripeWebhookSecret: string | null;
 };
@@ -23,6 +25,7 @@ export function toolEnv(tool: ToolConfig): ToolEnv {
   return {
     statsUrl: read(`STATS_URL_${tool.envKey}`),
     statsToken: read(`STATS_TOKEN_${tool.envKey}`),
+    adminToken: read(`BEHEER_TOKEN_${tool.envKey}`),
     stripeApiKey: read(`STRIPE_API_KEY_${tool.envKey}`),
     stripeWebhookSecret: read(`STRIPE_WEBHOOK_SECRET_${tool.envKey}`),
   };

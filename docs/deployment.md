@@ -49,6 +49,14 @@ heeft alleen de twee van het stats-adres nodig.
 1. Rol het stats-adres uit in de tool (`docs/stats-contract.md`).
 2. Zet `STATS_URL_<KEY>` (het volledige adres) en `STATS_TOKEN_<KEY>`.
 
+### Beheer (optioneel)
+
+Voor de pagina Organisaties van een tool: zet `BEHEER_TOKEN_<KEY>` op het
+`BEHEER_GEHEIM` van de tool (`openssl rand -hex 32`, een ander dan het token
+van de cijfers). Het beheeradres staat naast het stats-adres, dus
+`STATS_URL_<KEY>` moet er ook zijn. Zonder token toont de tool geen link naar
+Organisaties. Zie [beheer-contract.md](beheer-contract.md).
+
 ### Stripe
 
 Elke tool hangt aan een Stripe-account. In dat account:
