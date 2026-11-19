@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AttentionList } from "@/components/app/attention-list";
 import { Figure } from "@/components/app/figure";
 import { LineChart, MiniTrend } from "@/components/app/line-chart";
 import { PeriodPills, withPeriod } from "@/components/app/period-pills";
@@ -6,6 +7,7 @@ import { SignalList } from "@/components/app/signal-list";
 import { StatusLine, ToneDot } from "@/components/app/status";
 import { counted, euro, euroChange, number, percent } from "@/lib/format";
 import { parsePeriod, periodReference } from "@/lib/metrics/period";
+import { attentionRows } from "@/lib/metrics/usage";
 import { toolStatus } from "@/lib/status/tool-status";
 import { getOverview } from "@/server/queries";
 
@@ -19,6 +21,10 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const changeStart = overview.mrrChangeCents === null ? null : overview.mrrCents - overview.mrrChangeCents;
   const changePct = overview.mrrChangeCents !== null && changeStart ? percent(overview.mrrChangeCents, changeStart) : null;
   const canceledPct = overview.canceled > 0 && overview.payingAtStart ? percent(overview.canceled, overview.payingAtStart) : null;
+  const attention = attentionRows(
+    overview.tools.map((figures) => ({ id: figures.tool.id, name: figures.tool.name, stats: figures.stats })),
+    8
+  );
 
   return (
     <div className="flex flex-col gap-14">
@@ -56,6 +62,12 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
           <h2 className="text-xl">Signalen</h2>
           <SignalList signals={overview.signals} emptyText="Nog geen signalen." />
+          {attention.length > 0 ? (
+            <>
+              <h2 className="mt-6 text-xl">Vraagt aandacht</h2>
+              <AttentionList rows={attention} emptyText="" />
+            </>
+          ) : null}
         </div>
       </section>
 

@@ -13,6 +13,7 @@ import { toolEnv } from "./env";
 type CurrentRow = { tool_id: string; mrr_cents: string; paying: string; trialing: string; canceled: string };
 type DailyRow = { tool_id: string; day: string; mrr_cents: number; paying: number };
 type SnapshotRow = { tool_id: string; fetched_at: Date; payload: unknown };
+type UsageRow = { tool_id: string; day: string; week: string | null; month: string | null };
 type StatusRow = { tool_id: string; kind: "stats" | "stripe"; ok: boolean; checked_at: Date; message: string | null };
 
 async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Date): Promise<ToolFigures[]> {
@@ -21,7 +22,7 @@ async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Da
   const startDay = shiftDay(today, -period);
   const since = new Date(now.getTime() - period * 24 * 60 * 60 * 1000);
 
-  const [current, daily, snapshots, statuses, failed] = await Promise.all([
+  const [current, daily, snapshots, statuses, failed, usage, newPaying] = await Promise.all([
     query<CurrentRow>(
       `select tool_id,
          coalesce(sum(mrr_cents) filter (where status in ('active', 'past_due') and currency = 'eur'), 0) as mrr_cents,
@@ -45,6 +46,15 @@ async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Da
       "select tool_id, count(*) as count from signals where tool_id = any($1) and kind = 'payment_failed' and occurred_at >= now() - interval '7 days' group by tool_id",
       [ids]
     ),
+    query<UsageRow>(
+      `select tool_id, day::text as day, payload->'active'->>'last_7d' as week, payload->'active'->>'last_30d' as month
+       from stats_snapshots where tool_id = any($1) and day >= ($2::date - 400) order by day`,
+      [ids, today]
+    ),
+    query<{ tool_id: string; count: string }>(
+      "select tool_id, count(*) as count from signals where tool_id = any($1) and kind = 'new_paying' and occurred_at >= $2 group by tool_id",
+      [ids, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)]
+    ),
   ]);
 
   return tools.map((tool) => {
@@ -58,6 +68,12 @@ async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Da
     const snapshot = snapshots.find((row) => row.tool_id === tool.id);
     const parsed = snapshot ? statsSchema.safeParse(snapshot.payload) : null;
     const status = (kind: "stats" | "stripe") => statuses.find((row) => row.tool_id === tool.id && row.kind === kind);
+    const usageDays = usage.filter((row) => row.tool_id === tool.id);
+    const usageSeries = (pick: (row: UsageRow) => string | null): DayPoint[] =>
+      usageDays.flatMap((row) => {
+        const value = Number(pick(row) ?? Number.NaN);
+        return Number.isFinite(value) ? [{ day: row.day, value }] : [];
+      });
     const statsStatus = status("stats");
     const stripeStatus = status("stripe");
     return {
@@ -85,6 +101,9 @@ async function loadFigures(tools: readonly ToolConfig[], period: Period, now: Da
         checkedAt: stripeStatus?.checked_at ?? null,
       },
       mrrSeries,
+      activeWeekSeries: usageSeries((row) => row.week),
+      activeMonthSeries: usageSeries((row) => row.month),
+      newPaying30d: env.stripeApiKey ? Number(newPaying.find((row) => row.tool_id === tool.id)?.count ?? 0) : null,
     };
   });
 }
