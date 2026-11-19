@@ -50,6 +50,7 @@ Authorization: Bearer <token van deze tool>
 | `active.last_7d`, `active.last_30d` | 2 | Accounts met een kernactie in die periode. |
 | `counters` | 2 | Vrije tellers per tool, over de afgelopen 30 dagen. De labels staan in `src/config/tools.ts`. |
 | `attention` | 2 | Hooguit 50 aandachtspunten: een soort, een interne verwijzing en eventueel een aantal dagen. |
+| `revenue` | optioneel | Betaalde omzet, alleen voor een tool met `revenueFrom: "stats"`. Zie "Betalend en omzet". |
 
 De soorten aandachtspunten die het dashboard in woorden toont: `trial_ending`
 (een proef die bijna afloopt, `days` is het aantal dagen dat nog rest) en
@@ -72,3 +73,28 @@ niet kent, negeert het; een tool mag dus vooruitlopen.
 
 Die komen niet uit dit adres maar uit Stripe, zodat er één bron van waarheid
 voor geld is.
+
+De uitzondering is een tool die per keer verkoopt in plaats van per
+abonnement, of die zijn Stripe-account met andere producten deelt. Die heeft
+in `src/config/tools.ts` `revenueFrom: "stats"` en levert zijn omzet zelf aan.
+Nu is dat alleen Actuelegegevens.nl.
+
+```json
+"revenue": {
+  "last_30d_cents": 124000,
+  "months": [
+    { "month": "2026-10", "cents": 118000 },
+    { "month": "2026-11", "cents": 86000 }
+  ]
+}
+```
+
+- Bedragen in hele eurocenten, **zonder btw** en **na terugbetalingen**.
+  Alleen wat betaald is; een kosteloze levering telt voor nul.
+- `last_30d_cents`: de laatste 30 dagen.
+- `months`: per kalendermaand in Nederlandse tijd (`YYYY-MM`), hooguit 36.
+  Het dashboard toont de laatste twaalf, de lopende maand inbegrepen; een
+  maand die ontbreekt telt als nul.
+- Alleen bedragen: geen klant, geen bestelling.
+
+Deze omzet staat los van de MRR en wordt er niet bij opgeteld.

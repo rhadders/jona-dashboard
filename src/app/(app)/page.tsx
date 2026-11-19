@@ -7,6 +7,7 @@ import { SignalList } from "@/components/app/signal-list";
 import { StatusLine, ToneDot } from "@/components/app/status";
 import { counted, euro, euroChange, number, percent } from "@/lib/format";
 import { parsePeriod, periodReference } from "@/lib/metrics/period";
+import { revenueTrend } from "@/lib/metrics/revenue";
 import { attentionRows } from "@/lib/metrics/usage";
 import { toolStatus } from "@/lib/status/tool-status";
 import { getOverview } from "@/server/queries";
@@ -71,7 +72,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-8 md:grid-cols-4">
+      <section className={overview.ownRevenue30dCents === null ? "grid grid-cols-2 gap-8 md:grid-cols-4" : "grid grid-cols-2 gap-8 md:grid-cols-5"}>
+        {overview.ownRevenue30dCents !== null ? <Figure label="Eenmalige omzet, 30 dagen" value={euro(overview.ownRevenue30dCents)} /> : null}
         <Figure label="Betalende klanten" value={number(overview.paying)} />
         <Figure label="In proefperiode" value={number(overview.trialing)} />
         <Figure label="Opzeggingen" value={number(overview.canceled)} aside={canceledPct !== null ? `· ${canceledPct}%` : undefined} />
@@ -83,14 +85,16 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         <div className="flex flex-col border-b">
           <div className={`${ROW} hidden py-3 text-xs uppercase tracking-[0.14em] text-muted-foreground md:grid`} aria-hidden="true">
             <span>Tool</span>
-            <span>MRR</span>
+            <span>Omzet</span>
             <span>Klanten</span>
             <span>Aanmeldingen</span>
             <span>Verloop</span>
             <span>Status</span>
           </div>
           {overview.tools.map((figures) => {
-            const status = toolStatus({ stats: figures.statsState, stripe: figures.stripeState, failedPayments: figures.failedPayments });
+            const ownRevenue = figures.tool.revenueFrom === "stats";
+            const status = toolStatus({ stats: figures.statsState, stripe: figures.stripeState, failedPayments: figures.failedPayments, stripeNeeded: !ownRevenue });
+            const amount = ownRevenue ? (figures.revenue ? euro(figures.revenue.last30dCents) : "–") : euro(figures.mrrCents);
             return (
               <Link
                 key={figures.tool.id}
@@ -99,19 +103,26 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
               >
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-lg font-medium text-foreground">{figures.tool.name}</span>
-                  <span className="text-sm text-muted-foreground md:hidden">{counted(figures.paying, figures.tool.customer)}</span>
+                  <span className="text-sm text-muted-foreground md:hidden">
+                    {ownRevenue ? "Eenmalig, 30 dagen" : counted(figures.paying, figures.tool.customer)}
+                  </span>
                 </span>
-                <span className="tabular-nums max-md:hidden">{euro(figures.mrrCents)}</span>
-                <span className="tabular-nums max-md:hidden">{counted(figures.paying, figures.tool.customer)}</span>
+                <span className="flex flex-col tabular-nums max-md:hidden">
+                  {amount}
+                  {ownRevenue ? <span className="text-xs text-muted-foreground">eenmalig, 30 dagen</span> : null}
+                </span>
+                <span className="tabular-nums max-md:hidden">
+                  {ownRevenue ? <span className="text-muted-foreground">–</span> : counted(figures.paying, figures.tool.customer)}
+                </span>
                 <span className="tabular-nums max-md:hidden">
                   {figures.stats ? number(figures.stats.signups.last_30d) : <span className="text-muted-foreground">–</span>}
                 </span>
                 <span className="max-md:hidden">
-                  <MiniTrend points={figures.mrrSeries} />
+                  <MiniTrend points={ownRevenue ? revenueTrend(figures.revenue?.months ?? []) : figures.mrrSeries} />
                 </span>
                 <StatusLine tone={status.tone} label={status.label} className="max-md:hidden" />
                 <span className="flex items-center gap-3 tabular-nums md:hidden">
-                  {euro(figures.mrrCents)}
+                  {amount}
                   <ToneDot tone={status.tone} />
                   <span className="sr-only">{status.label}</span>
                 </span>

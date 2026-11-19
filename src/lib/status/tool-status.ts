@@ -17,12 +17,15 @@ export type ToolStatusInput = {
   stripe: IntegrationState;
   /** Mislukte betalingen in de afgelopen zeven dagen. */
   failedPayments: number;
+  /** `false` voor een tool die zijn omzet zelf aanlevert: Stripe ontbreekt daar niet. Standaard `true`. */
+  stripeNeeded?: boolean;
 };
 
 export type ToolStatus = { tone: Tone; label: string };
 
 export function toolStatus(input: ToolStatusInput): ToolStatus {
   const { stats, stripe, failedPayments } = input;
+  const stripeNeeded = input.stripeNeeded ?? true;
   if (!stats.configured && !stripe.configured) return { tone: "neutral", label: "Nog niet gekoppeld" };
   if (stats.configured && stats.ok === false) return { tone: "attention", label: `Stats-adres: ${lower(stats.message) ?? "ophalen mislukt"}` };
   if (stripe.configured && stripe.ok === false) return { tone: "attention", label: `Stripe: ${lower(stripe.message) ?? "controle mislukt"}` };
@@ -30,8 +33,8 @@ export function toolStatus(input: ToolStatusInput): ToolStatus {
     return { tone: "attention", label: failedPayments === 1 ? "1 betaling mislukt" : `${failedPayments} betalingen mislukt` };
   }
   if (!stats.configured) return { tone: "neutral", label: "Stats-adres nog niet gekoppeld" };
-  if (!stripe.configured) return { tone: "neutral", label: "Stripe nog niet gekoppeld" };
-  if (stats.ok === null || stripe.ok === null) return { tone: "neutral", label: "Wacht op de eerste ophaalronde" };
+  if (!stripe.configured && stripeNeeded) return { tone: "neutral", label: "Stripe nog niet gekoppeld" };
+  if (stats.ok === null || (stripe.configured && stripe.ok === null)) return { tone: "neutral", label: "Wacht op de eerste ophaalronde" };
   return { tone: "good", label: "Alles in orde" };
 }
 

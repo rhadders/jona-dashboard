@@ -18,6 +18,8 @@ verwijzingen: geen namen, geen e-mailadressen, geen inhoud uit de tools.
   nachtelijke controle die alle abonnementen opnieuw naloopt.
 - **Overzicht en detailpagina** met MRR, betalend, proef, opzeggingen,
   aanmeldingen en signalen.
+- **Eenmalige omzet** voor een tool die per keer verkoopt: die levert zijn
+  omzet zelf aan via het stats-adres, los van de MRR.
 - **Instellingen**: de staat van elke koppeling, "Haal nu op" en de passkeys.
 
 Fase 2 (gebruik en funnel), fase 3 (uptime, deploys, kosten en marge) en

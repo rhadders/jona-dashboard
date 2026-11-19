@@ -6,6 +6,10 @@ import { z } from "zod";
  * persoonsgegevens. De vaste velden betekenen bij elke tool hetzelfde;
  * `counters` is per tool vrij. Onbekende velden worden genegeerd, zodat een
  * tool vooruit kan lopen op het dashboard.
+ *
+ * `revenue` is voor een tool die per keer verkoopt in plaats van per
+ * abonnement: betaalde omzet in eurocenten, zonder btw en na terugbetalingen.
+ * Alleen bedragen, geen klant of bestelling.
  */
 
 const count = z.number().int().nonnegative();
@@ -27,6 +31,12 @@ export const statsSchema = z.object({
       })
     )
     .max(50)
+    .optional(),
+  revenue: z
+    .object({
+      last_30d_cents: count,
+      months: z.array(z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/), cents: count })).max(36),
+    })
     .optional(),
 });
 

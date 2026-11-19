@@ -41,6 +41,8 @@ vóór de deploy.
 
 Per tool vier omgevingsvariabelen, met het achtervoegsel uit
 `src/config/tools.ts` (`BESTUUR`, `GIFTEN`, `SELAREAD`, `ACTUELEGEGEVENS`).
+Een tool die zijn omzet zelf aanlevert (zie "Omzet uit het stats-adres")
+heeft alleen de twee van het stats-adres nodig.
 
 ### Stats-adres
 
@@ -92,6 +94,21 @@ Btw gaat er zo uit:
 
 Na een wijziging in deze regels klopt de stand pas na de eerstvolgende
 nachtelijke controle; "Haal nu op" op Instellingen rekent meteen opnieuw.
+
+## Omzet uit het stats-adres
+
+Actuelegegevens.nl verkoopt per campagne en deelt zijn Stripe-account met
+andere producten. Die tool heeft daarom `revenueFrom: "stats"` in
+`src/config/tools.ts` en levert zijn betaalde omzet zelf aan in het
+stats-adres (`revenue`, zie `docs/stats-contract.md`): zonder btw en na
+terugbetalingen.
+
+- Hij hoeft niet aan Stripe gekoppeld te zijn; `STRIPE_API_KEY_<KEY>` en
+  `STRIPE_WEBHOOK_SECRET_<KEY>` blijven leeg en de status mist Stripe niet.
+- De detailpagina toont de omzet over 30 dagen, deze maand, vorige maand en
+  twaalf maanden, met een grafiek per maand.
+- Op het overzicht staat hij als "Eenmalige omzet, 30 dagen", los van de MRR.
+- De cijfers zijn zo vers als de laatste geslaagde ophaalronde.
 
 ## Het uitgeversaandeel van Selaread
 

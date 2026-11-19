@@ -6,6 +6,7 @@ import { AttentionList } from "@/components/app/attention-list";
 import { DataList } from "@/components/app/data-list";
 import { Figure } from "@/components/app/figure";
 import { LineChart } from "@/components/app/line-chart";
+import { MonthBars } from "@/components/app/month-bars";
 import { PeriodPills, withPeriod } from "@/components/app/period-pills";
 import { SignalList } from "@/components/app/signal-list";
 import { StatusLine } from "@/components/app/status";
@@ -36,7 +37,10 @@ export default async function ToolPage({ params, searchParams }: Props) {
   if (!tool) notFound();
   const period = parsePeriod((await searchParams).periode);
   const { figures, signals } = await getToolDetail(tool, period);
-  const status = toolStatus({ stats: figures.statsState, stripe: figures.stripeState, failedPayments: figures.failedPayments });
+  const ownRevenue = tool.revenueFrom === "stats";
+  const revenue = figures.revenue;
+  const showStripe = !ownRevenue || figures.stripeState.configured;
+  const status = toolStatus({ stats: figures.statsState, stripe: figures.stripeState, failedPayments: figures.failedPayments, stripeNeeded: !ownRevenue });
   const stats = figures.stats;
 
   const changeStart = figures.mrrChangeCents === null ? null : figures.mrrCents - figures.mrrChangeCents;
@@ -80,22 +84,49 @@ export default async function ToolPage({ params, searchParams }: Props) {
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-8 md:grid-cols-4">
-        <Figure size="lg" label="Maandomzet (MRR)" value={euro(figures.mrrCents)} note={changeNote} />
-        <Figure size="lg" label={`Betalende ${tool.customer.plural}`} value={number(figures.paying)} />
-        <Figure size="lg" label="In proefperiode" value={number(figures.trialing)} />
-        <Figure size="lg" label="Opzeggingen" value={number(figures.canceled)} aside={canceledPct !== null ? `· ${canceledPct}%` : undefined} />
-      </section>
+      {ownRevenue ? (
+        <section className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <Figure size="lg" label="Omzet, 30 dagen" value={revenue ? euro(revenue.last30dCents) : "–"} />
+          <Figure size="lg" label="Deze maand" value={revenue ? euro(revenue.thisMonthCents) : "–"} />
+          <Figure size="lg" label="Vorige maand" value={revenue ? euro(revenue.previousMonthCents) : "–"} />
+          <Figure size="lg" label="Twaalf maanden" value={revenue ? euro(revenue.yearCents) : "–"} />
+        </section>
+      ) : (
+        <section className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <Figure size="lg" label="Maandomzet (MRR)" value={euro(figures.mrrCents)} note={changeNote} />
+          <Figure size="lg" label={`Betalende ${tool.customer.plural}`} value={number(figures.paying)} />
+          <Figure size="lg" label="In proefperiode" value={number(figures.trialing)} />
+          <Figure size="lg" label="Opzeggingen" value={number(figures.canceled)} aside={canceledPct !== null ? `· ${canceledPct}%` : undefined} />
+        </section>
+      )}
 
       <section className="grid grid-cols-[repeat(auto-fit,minmax(min(420px,100%),1fr))] gap-x-16 gap-y-12">
-        <div className="flex flex-col gap-5">
-          <h2 className="text-xl">Maandomzet over de tijd</h2>
-          <LineChart
-            points={figures.mrrSeries}
-            label={`Maandomzet van ${tool.name} over de tijd`}
-            emptyText={figures.stripeState.configured ? "De grafiek vult zich vanaf de tweede dag met metingen." : "Stripe is voor deze tool nog niet gekoppeld."}
-          />
-        </div>
+        {ownRevenue ? (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">Omzet per maand</h2>
+            <MonthBars
+              months={revenue?.months ?? []}
+              label={`Omzet van ${tool.name} per maand`}
+              emptyText={
+                revenue
+                  ? "Nog geen betaalde omzet in de laatste twaalf maanden."
+                  : figures.statsState.configured
+                    ? "Het stats-adres levert nog geen omzet aan."
+                    : "Het stats-adres is voor deze tool nog niet gekoppeld."
+              }
+            />
+            <p className="text-sm text-muted-foreground">Betaalde omzet zonder btw, na terugbetalingen. Eenmalig per campagne, dus geen MRR.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            <h2 className="text-xl">Maandomzet over de tijd</h2>
+            <LineChart
+              points={figures.mrrSeries}
+              label={`Maandomzet van ${tool.name} over de tijd`}
+              emptyText={figures.stripeState.configured ? "De grafiek vult zich vanaf de tweede dag met metingen." : "Stripe is voor deze tool nog niet gekoppeld."}
+            />
+          </div>
+        )}
 
         <div className="flex flex-col gap-5">
           <h2 className="text-xl">Aanmeldingen</h2>
@@ -136,7 +167,7 @@ export default async function ToolPage({ params, searchParams }: Props) {
 
         {funnel.length > 0 ? (
           <div className="flex flex-col gap-5">
-            <h2 className="text-xl">Van aanmelding naar betalend, 30 dagen</h2>
+            <h2 className="text-xl">{ownRevenue ? "Van aanmelding naar gebruik, 30 dagen" : "Van aanmelding naar betalend, 30 dagen"}</h2>
             <DataList rows={funnel} />
           </div>
         ) : null}
@@ -165,8 +196,12 @@ export default async function ToolPage({ params, searchParams }: Props) {
           <DataList
             rows={[
               { label: "Stats-adres", value: integrationText(figures.statsState, "Niet gekoppeld") },
-              { label: "Stripe", value: integrationText(figures.stripeState, "Niet gekoppeld") },
-              { label: "Webhook van Stripe", value: figures.stripeState.webhookConfigured ? "Geheim ingesteld" : "Geheim ontbreekt" },
+              ...(showStripe
+                ? [
+                    { label: "Stripe", value: integrationText(figures.stripeState, "Niet gekoppeld") },
+                    { label: "Webhook van Stripe", value: figures.stripeState.webhookConfigured ? "Geheim ingesteld" : "Geheim ontbreekt" },
+                  ]
+                : [{ label: "Omzet", value: "Komt uit het stats-adres" }]),
             ]}
           />
         </div>
