@@ -16,6 +16,7 @@ import { parsePeriod } from "@/lib/metrics/period";
 import { attentionRows, funnelRows, usageWindow } from "@/lib/metrics/usage";
 import { partnerShareCents } from "@/lib/stripe/mrr";
 import { toolStatus, type IntegrationState } from "@/lib/status/tool-status";
+import { adminConfigured } from "@/server/admin/accounts";
 import { partnerSharePercent } from "@/server/env";
 import { getToolDetail } from "@/server/queries";
 
@@ -79,6 +80,11 @@ export default async function ToolPage({ params, searchParams }: Props) {
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-3">
             <h1 className="text-3xl">{tool.name}</h1>
             <StatusLine tone={status.tone} label={status.label} />
+            {adminConfigured(tool) ? (
+              <Link href={`/tools/${tool.id}/organisaties`} className="text-sm text-primary underline decoration-brand/70 underline-offset-[3px] hover:text-brand-strong">
+                {tool.customer.plural.charAt(0).toUpperCase() + tool.customer.plural.slice(1)}
+              </Link>
+            ) : null}
           </div>
           <PeriodPills basePath={`/tools/${tool.id}`} period={period} />
         </div>

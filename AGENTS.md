@@ -19,6 +19,10 @@ grafiekbibliotheek: grafieken zijn eigen SVG met tokens.
 - **Geen persoonsgegevens.** De database bewaart aantallen, bedragen en
   verwijzingen. Geen naam, e-mailadres of inhoud uit een tool of uit Stripe;
   `src/server/migrations.test.ts` bewaakt de kolommen.
+- **Namen van organisaties alleen tonen.** De pagina Organisaties haalt haar
+  lijst bij elk bezoek op bij de tool zelf (`docs/beheer-contract.md`) en
+  bewaart niets: geen tabel, geen cache, geen log. Over de mensen achter een
+  organisatie staat er niets in, alleen hun aantal.
 - **`src/server/**` is alleen server**: geen `"use client"`-bestand en niets
   onder `src/lib`, `src/components` of `src/config` importeert eruit
   (`src/server/server-imports.test.ts`). Geheimen uit de omgeving leest alleen
