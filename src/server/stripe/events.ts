@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { findTool } from "@/config/tools";
-import { toSubscriptionRow, type StripeSubscriptionLike } from "@/lib/stripe/mrr";
+import { isForProduct, isInvoiceForProduct, toSubscriptionRow, type StripeSubscriptionLike } from "@/lib/stripe/mrr";
 import { isSubscriptionEvent, signalFromEvent } from "@/lib/stripe/signals";
 import { query } from "../db";
 import { snapshotMrr, upsertSubscription, vatOptions } from "./sync";
@@ -9,8 +9,11 @@ import { snapshotMrr, upsertSubscription, vatOptions } from "./sync";
  * Verwerkt één geverifieerd webhookbericht. Stripe kan hetzelfde bericht
  * vaker sturen: het id wordt eerst vastgelegd, en een bericht dat er al staat
  * doet niets meer. Zo leidt dezelfde gebeurtenis nooit tot twee signalen.
+ *
+ * Deelt de tool zijn Stripe-account, dan komen hier ook de berichten van de
+ * andere tool binnen. Een bericht over een ander product wordt genegeerd.
  */
-export async function handleStripeEvent(toolId: string, event: Stripe.Event): Promise<"processed" | "duplicate"> {
+export async function handleStripeEvent(toolId: string, event: Stripe.Event): Promise<"processed" | "duplicate" | "ignored"> {
   const occurredAt = new Date(event.created * 1000);
   const inserted = await query(
     "insert into stripe_events (tool_id, id, type, occurred_at) values ($1, $2, $3, $4) on conflict (tool_id, id) do nothing returning id",
@@ -18,8 +21,14 @@ export async function handleStripeEvent(toolId: string, event: Stripe.Event): Pr
   );
   if (inserted.length === 0) return "duplicate";
 
+  const tool = findTool(toolId);
+  const own = isSubscriptionEvent(event.type)
+    ? isForProduct(event.data.object as unknown as StripeSubscriptionLike, tool?.stripeProductId)
+    : isInvoiceForProduct(event.data.object, tool?.stripeProductId);
+  if (!own) return "ignored";
+
   if (isSubscriptionEvent(event.type)) {
-    await upsertSubscription(toolId, toSubscriptionRow(event.data.object as unknown as StripeSubscriptionLike, vatOptions(findTool(toolId))));
+    await upsertSubscription(toolId, toSubscriptionRow(event.data.object as unknown as StripeSubscriptionLike, vatOptions(tool)));
     await snapshotMrr(toolId);
   }
 

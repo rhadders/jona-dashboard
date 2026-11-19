@@ -119,6 +119,7 @@ export type StripeSubscriptionLike = {
       quantity?: number | null;
       tax_rates?: readonly TaxRateLike[] | null;
       price: {
+        product?: string | { id: string } | null;
         unit_amount: number | null;
         tax_behavior?: "inclusive" | "exclusive" | "unspecified" | null;
         recurring: { interval: BillingInterval; interval_count: number } | null;
@@ -126,6 +127,36 @@ export type StripeSubscriptionLike = {
     }[];
   };
 };
+
+const productRef = (product: unknown): string | null =>
+  typeof product === "string" ? product : typeof (product as { id?: unknown } | null)?.id === "string" ? (product as { id: string }).id : null;
+
+/**
+ * Hoort dit abonnement bij het product van de tool? Zonder `productId` telt
+ * elk abonnement: de tool heeft het Stripe-account dan voor zich alleen.
+ */
+export function isForProduct(subscription: Pick<StripeSubscriptionLike, "items">, productId: string | undefined): boolean {
+  if (!productId) return true;
+  return subscription.items.data.some((item) => productRef(item.price.product) === productId);
+}
+
+/**
+ * Hoort deze factuur bij het product van de tool? Het product staat bij de
+ * regels: sinds 2025 onder `pricing.price_details`, daarvoor onder `price`.
+ * Een factuur waarvan geen enkele regel een product noemt telt mee, zodat een
+ * mislukte betaling niet ongezien blijft.
+ */
+export function isInvoiceForProduct(invoice: unknown, productId: string | undefined): boolean {
+  if (!productId) return true;
+  const lines = (invoice as { lines?: { data?: unknown } } | null)?.lines?.data;
+  const products = (Array.isArray(lines) ? lines : [])
+    .map((line) => {
+      const l = line as { pricing?: { price_details?: { product?: unknown } | null } | null; price?: { product?: unknown } | null } | null;
+      return productRef(l?.pricing?.price_details?.product) ?? productRef(l?.price?.product);
+    })
+    .filter((product): product is string => product !== null);
+  return products.length === 0 || products.includes(productId);
+}
 
 export type SubscriptionRow = {
   id: string;
