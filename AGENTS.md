@@ -14,8 +14,12 @@ grafiekbibliotheek: grafieken zijn eigen SVG met tokens.
 
 ## Grenzen
 
-- **Alleen lezen.** Het dashboard schrijft nergens naartoe: niet naar een
-  tool, niet naar Stripe. Sleutels hebben alleen leesrechten.
+- **Alleen lezen, op drie handelingen na.** Het dashboard schrijft niet naar
+  Stripe en de Stripe-sleutels hebben alleen leesrechten. Naar een tool
+  schrijft het alleen via de handelingen uit het beheercontract (vrijstellen,
+  proef verlengen, Stripe-koppeling wissen), elk na een bevestiging en met
+  een regel in `admin_actions`. Een nieuwe handeling hoort eerst in
+  `docs/beheer-contract.md`.
 - **Geen persoonsgegevens.** De database bewaart aantallen, bedragen en
   verwijzingen. Geen naam, e-mailadres of inhoud uit een tool of uit Stripe;
   `src/server/migrations.test.ts` bewaakt de kolommen.

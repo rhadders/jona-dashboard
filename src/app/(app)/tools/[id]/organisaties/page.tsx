@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink, Search } from "lucide-react";
+import { AccountActions } from "@/components/app/account-actions";
 import { ToneDot } from "@/components/app/status";
 import { findTool } from "@/config/tools";
+import { ACTION_LABELS, trialDayRange } from "@/lib/admin/actions";
 import { accountState, dayLabel, filterAccounts, stripeCustomerUrl } from "@/lib/admin/contract";
 import { counted, relativeMoment } from "@/lib/format";
 import { fetchAccounts } from "@/server/admin/accounts";
+import { recentAdminActions } from "@/server/admin/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +34,8 @@ export default async function AccountsPage({ params, searchParams }: Props) {
   const result = await fetchAccounts(tool);
   const accounts = result.state === "ok" ? filterAccounts(result.accounts, search) : [];
   const plural = tool.customer.plural;
+  const trialDays = trialDayRange();
+  const log = result.state === "ok" ? await recentAdminActions(tool.id) : [];
 
   return (
     <div className="flex flex-col gap-10">
@@ -101,12 +106,39 @@ export default async function AccountsPage({ params, searchParams }: Props) {
                       </a>
                     ) : null}
                   </div>
+                  <AccountActions
+                    toolId={tool.id}
+                    accountRef={account.ref}
+                    exempt={account.state === "exempt"}
+                    subscribed={account.state === "subscription"}
+                    hasStripeLink={Boolean(account.stripe_customer || account.status)}
+                    trialDays={trialDays}
+                  />
                 </li>
               );
             })}
           </ul>
         </section>
       )}
+
+      {log.length > 0 ? (
+        <section className="flex flex-col gap-5">
+          <h2 className="text-xl">Laatste handelingen</h2>
+          <ul className="flex flex-col border-b">
+            {log.map((entry, index) => (
+              <li key={`${entry.accountRef}-${entry.performedAt.getTime()}-${index}`} className="flex flex-wrap justify-between gap-x-8 gap-y-1 border-t py-3.5">
+                <span>
+                  {ACTION_LABELS[entry.kind] ?? entry.kind}
+                  {typeof entry.detail.until === "string" ? ` tot en met ${dayLabel(`${entry.detail.until}T12:00:00Z`)}` : ""}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  <span className="font-mono text-[13px]">{entry.accountRef}</span> · {relativeMoment(entry.performedAt)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </div>
   );
 }
