@@ -1,7 +1,7 @@
 # Jona Dashboard
 
 Eén plek voor de cijfers van de Jona-tools: omzet, gebruik, techniek en
-kosten van Jona Bestuur, Jona Giften, Selaread en Actuelegegevens.nl. Een
+kosten van Jona Bestuur, Jona Giften, Jona Roosters, Selaread en Actuelegegevens.nl. Een
 overzicht over alle tools, een detailpagina per tool, in de Jona-huisstijl
 (licht en donker). Voor één gebruiker, met een passkey.
 

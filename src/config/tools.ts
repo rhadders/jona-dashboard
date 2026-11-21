@@ -75,6 +75,19 @@ export const TOOLS: readonly ToolConfig[] = [
     stripeProductId: "jona_giften_abonnement",
   },
   {
+    id: "jona-roosters",
+    name: "Jona Roosters",
+    envKey: "ROOSTERS",
+    customer: { singular: "organisatie", plural: "organisaties" },
+    activeMeans: "Een rooster gemaakt of gepubliceerd",
+    counters: {
+      roosters_gemaakt: "Roosters gemaakt",
+      roosters_gepubliceerd: "Roosters gepubliceerd",
+    },
+    inclusiveVatPercent: 21,
+    stripeProductId: "jona_roosters_abonnement",
+  },
+  {
     id: "selaread",
     name: "Selaread",
     envKey: "SELAREAD",

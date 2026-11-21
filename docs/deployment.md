@@ -71,11 +71,11 @@ Elke tool hangt aan een Stripe-account. In dat account:
    `invoice.paid` en `invoice.payment_failed`. Zet het signing secret in
    `STRIPE_WEBHOOK_SECRET_<KEY>`.
 
-**Een gedeeld account.** Jona Bestuur en Jona Giften delen één
+**Een gedeeld account.** Jona Bestuur, Jona Giften en Jona Roosters delen één
 Stripe-account. Elk heeft een `stripeProductId` in `src/config/tools.ts`:
 alleen abonnementen en facturen op dat product tellen mee, en de nachtelijke
-controle ruimt op wat er niet bij hoort. Beide tools krijgen een eigen
-webhook in dat account (elk met een eigen signing secret) en mogen dezelfde
+controle ruimt op wat er niet bij hoort. Elke tool krijgt een eigen
+webhook in dat account (elk met een eigen signing secret) en ze mogen dezelfde
 restricted key gebruiken. Een tool zonder `stripeProductId` telt het hele
 account.
 

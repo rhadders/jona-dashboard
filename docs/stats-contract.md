@@ -66,6 +66,7 @@ niet kent, negeert het; een tool mag dus vooruitlopen.
 | --- | --- | --- | --- |
 | Jona Bestuur | Organisatie | Een vergadering gemaakt of geopend | Eerste vergadering gemaakt |
 | Jona Giften | Organisatie | Een gift ingevoerd of geïmporteerd | Eerste gift ingevoerd |
+| Jona Roosters | Organisatie | Een rooster gemaakt of gepubliceerd | Eerste rooster gemaakt |
 | Selaread | Abonnee | Een nummer geopend | Eerste nummer gelezen |
 | Actuelegegevens.nl | Organisatie | Een campagne verstuurd of een reactie ontvangen | Eerste campagne verstuurd |
 
